@@ -1,0 +1,842 @@
+/* ============================================================
+   Calculadora de Elementos de Máquinas — sistema de diseño
+   Paleta inspirada en los materiales de la propia materia: acero
+   pavonado (primario), latón (secundario) y cobre (acento, solo
+   para el resultado destacado). Tipografía IBM Plex —familia con
+   raíz en documentación técnica— para UI/títulos, y Plex Mono
+   para los valores numéricos de resultado (lectura de instrumento).
+   Mobile-first, tokens de color/espaciado/radio/sombra.
+   ============================================================ */
+
+:root {
+  /* Paleta — acero pavonado como color de marca */
+  --color-fondo: #eef1ee;
+  --color-panel: #fbfbf8;
+  --color-panel-alterno: #f2f3ef;
+
+  --color-primario-50: #e7edee;
+  --color-primario-100: #d0dcdf;
+  --color-primario: #21495c;
+  --color-primario-oscuro: #14303d;
+  --color-primario-contraste: #ffffff;
+
+  --color-texto: #1b201d;
+  --color-texto-suave: #565f5a;
+  --color-texto-tenue: #838d87;
+  --color-borde: #d7dbd6;
+  --color-borde-fuerte: #b7bfb8;
+
+  --color-exito: #157347;
+  --color-exito-fondo: #e8f5ee;
+  --color-exito-borde: #bfe3cf;
+  --color-error: #b3261e;
+  --color-error-fondo: #fdecea;
+  --color-error-borde: #f3c6c2;
+  --color-aviso-fondo: #fff6e0;
+  --color-aviso-borde: #edcf7a;
+  --color-aviso-texto: #6b4e04;
+
+  /* Secundario — latón: distingue la caja del "eje" de la del "agujero" */
+  --color-secundario: #8a6a28;
+  --color-secundario-50: #f4eee0;
+  --color-secundario-oscuro: #5f4818;
+
+  /* Acento — cobre: reservado al resultado destacado ("resumen-info"),
+     no se usa en ningún otro lugar para que mantenga su peso visual. */
+  --color-acento: #b5651d;
+  --color-acento-50: #fbeee1;
+  --color-acento-100: #f3d9bd;
+  --color-acento-oscuro: #7a4110;
+
+  /* Tipografía — Plex Sans (UI/títulos) + Plex Mono (valores numéricos) */
+  --fuente-ui: "IBM Plex Sans", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+  --fuente-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, "SF Mono", monospace;
+
+  /* Espaciado (escala 4px) */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+
+  /* Radios y sombras — más cerrados, panel de instrumento en vez de burbuja */
+  --radio-sm: 5px;
+  --radio: 8px;
+  --radio-lg: 10px;
+  --radio-pill: 999px;
+  --sombra-sm: 0 1px 2px rgba(20, 48, 61, 0.08), 0 1px 1px rgba(20, 48, 61, 0.05);
+  --sombra: 0 2px 8px rgba(20, 48, 61, 0.11), 0 1px 3px rgba(20, 48, 61, 0.07);
+  --sombra-lg: 0 8px 24px rgba(20, 48, 61, 0.15);
+
+  --duracion-rapida: 150ms;
+  --duracion: 220ms;
+  --easing: cubic-bezier(0.2, 0, 0, 1);
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--fuente-ui);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Números tabulares: alinean prolijamente en tablas y resultados */
+.linea-math,
+.ciclo-titulo {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Valores de resultado en Plex Mono: lectura tipo instrumento/calibre,
+   distinta de la tipografía de UI que usan las etiquetas. */
+.tabla-resultados td.valor,
+.dato-valor,
+.dato-valor-sec,
+.resumen-valor,
+.resumen-valor-mm {
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Foco accesible (visible siempre por teclado) ---------- */
+:focus-visible {
+  outline: 2.5px solid var(--color-primario);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 2.5px solid var(--color-primario);
+  outline-offset: 1px;
+}
+
+/* ---------- Encabezado ---------- */
+.app-header {
+  background: var(--color-primario-oscuro);
+  color: #fff;
+  padding: var(--sp-4) var(--sp-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.marca-icono {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radio-sm);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.marca-icono svg { width: 24px; height: 24px; }
+
+.marca-texto { min-width: 0; }
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.marca-subtitulo {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.02em;
+}
+
+.config-global {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.config-global select {
+  font-family: var(--fuente-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radio-sm);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  text-transform: none;
+  letter-spacing: normal;
+  min-height: 34px;
+}
+.config-global select option { color: var(--color-texto); }
+
+/* ---------- Pestañas ---------- */
+.tabs {
+  display: flex;
+  background: var(--color-panel);
+  border-bottom: 1px solid var(--color-borde);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: var(--sombra-sm);
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.8rem 0.4rem;
+  border: none;
+  background: none;
+  font-family: var(--fuente-ui);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  min-height: 48px;
+  transition: color var(--duracion-rapida) var(--easing), background-color var(--duracion-rapida) var(--easing);
+}
+
+.tab-btn span { white-space: nowrap; }
+.tab-icono { flex: 0 0 auto; width: 19px; height: 19px; }
+
+.tab-btn:hover { background: var(--color-primario-50); color: var(--color-primario-oscuro); }
+
+.tab-btn.active {
+  color: var(--color-primario);
+  border-bottom-color: var(--color-primario);
+  background: var(--color-primario-50);
+}
+
+/* ---------- Estructura ---------- */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--sp-4);
+}
+
+.modulo { display: flex; flex-direction: column; gap: var(--sp-4); }
+.modulo[hidden] { display: none; }
+
+.panel,
+.panel-salida {
+  background: var(--color-panel);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-sm);
+  padding: var(--sp-5);
+}
+
+.panel h2 {
+  margin: 0 0 var(--sp-3);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-primario-oscuro);
+}
+.panel h2:not(:first-child) {
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--color-borde);
+}
+
+/* ---------- Formularios ---------- */
+.campo { margin-bottom: var(--sp-4); }
+
+.campo label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--color-texto);
+  margin-bottom: 0.3rem;
+}
+
+.unidad { color: var(--color-texto-tenue); font-weight: 500; }
+.opcional { color: var(--color-texto-tenue); font-weight: 400; font-size: 0.83rem; }
+
+input[type="number"],
+input[type="text"],
+select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radio-sm);
+  background: var(--color-panel);
+  color: var(--color-texto);
+  transition: border-color var(--duracion-rapida) var(--easing), box-shadow var(--duracion-rapida) var(--easing);
+}
+input[type="text"], select { font-family: var(--fuente-ui); }
+input[type="number"] { font-family: var(--fuente-mono); font-weight: 500; }
+
+input:hover, select:hover { border-color: var(--color-borde-fuerte); }
+
+input:focus, select:focus {
+  border-color: var(--color-primario);
+  box-shadow: 0 0 0 3px var(--color-primario-100);
+}
+
+input.invalido {
+  border-color: var(--color-error);
+  background: var(--color-error-fondo);
+}
+input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
+
+.ayuda {
+  font-size: 0.83rem;
+  line-height: 1.45;
+  color: var(--color-texto-suave);
+  margin: 0.35rem 0 0;
+}
+
+.fila-doble { display: grid; grid-template-columns: 1fr; gap: 0 var(--sp-4); }
+
+/* Si una etiqueta de la fila ocupa 2 líneas y la de al lado 1 (p. ej.
+   "n₂ — velocidad accionado [rpm]" vs "n₁ — velocidad motor [rpm]" en
+   una columna angosta), el recuadro de carga queda más abajo en la
+   celda con etiqueta más larga. Con flex-columna + margin-top:auto en
+   el único input/select del campo, ambos quedan sobre la misma línea
+   de base sin importar cuántas líneas ocupe el texto de la etiqueta.
+   Se aplica solo a campos "simples" (label + un input/select, nada
+   más) para no afectar campos con radios o texto de ayuda debajo. */
+.fila-doble .campo:has(> label + input:last-child),
+.fila-doble .campo:has(> label + select:last-child) {
+  display: flex;
+  flex-direction: column;
+}
+.fila-doble .campo:has(> label + input:last-child) > input,
+.fila-doble .campo:has(> label + select:last-child) > select {
+  margin-top: auto;
+}
+
+.fila-selects { display: flex; gap: var(--sp-2); }
+.fila-selects select { flex: 1; }
+
+.radio-grupo { display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; padding-top: 0.15rem; }
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--color-texto);
+  cursor: pointer;
+  min-height: 44px;
+}
+.radio input { width: 1.15rem; height: 1.15rem; accent-color: var(--color-primario); flex: 0 0 auto; }
+
+/* ---------- Botones ---------- */
+.btn-principal {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.85rem;
+  margin-top: var(--sp-2);
+  font-family: var(--fuente-ui);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--color-primario-contraste);
+  background: var(--color-primario);
+  border: none;
+  border-radius: var(--radio-sm);
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: var(--sombra-sm);
+  transition: background-color var(--duracion-rapida) var(--easing), transform var(--duracion-rapida) var(--easing), box-shadow var(--duracion-rapida) var(--easing);
+}
+.btn-principal:hover { background: var(--color-primario-oscuro); box-shadow: var(--sombra); }
+.btn-principal:active { transform: scale(0.98); }
+
+.btn-secundario {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem;
+  margin: 0.5rem 0 var(--sp-3);
+  font-family: var(--fuente-ui);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  background: var(--color-primario-50);
+  border: 1.5px dashed var(--color-borde-fuerte);
+  border-radius: var(--radio-sm);
+  cursor: pointer;
+  transition: background-color var(--duracion-rapida) var(--easing), border-color var(--duracion-rapida) var(--easing);
+}
+.btn-secundario:hover { background: var(--color-primario-100); border-color: var(--color-primario); }
+.btn-secundario:active { transform: scale(0.99); }
+
+.btn-quitar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-error-fondo);
+  border: none;
+  border-radius: 50%;
+  color: var(--color-error);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--duracion-rapida) var(--easing);
+}
+.btn-quitar:hover { background: var(--color-error-borde); }
+
+/* ---------- Switch de modo ---------- */
+.switch-modo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.switch-etiqueta {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-texto-tenue);
+  cursor: pointer;
+  padding: 0.35rem 0.2rem;
+  transition: color var(--duracion-rapida) var(--easing);
+}
+.switch-etiqueta:hover { color: var(--color-primario); }
+
+/* La etiqueta del lado activo se resalta según el estado del checkbox */
+.switch-modo:has(#switch-ajustes:checked) .switch-etiqueta:last-of-type,
+.switch-modo:has(#switch-correas:checked) .switch-etiqueta:last-of-type,
+.switch-modo:has(#switch-rodamientos:checked) .switch-etiqueta:last-of-type {
+  color: var(--color-primario);
+}
+.switch-modo:has(#switch-ajustes:not(:checked)) .switch-etiqueta:first-of-type,
+.switch-modo:has(#switch-correas:not(:checked)) .switch-etiqueta:first-of-type,
+.switch-modo:has(#switch-rodamientos:not(:checked)) .switch-etiqueta:first-of-type {
+  color: var(--color-primario);
+}
+
+.switch { position: relative; display: inline-block; width: 50px; height: 30px; flex: 0 0 auto; }
+.switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #c3cddb;
+  border-radius: var(--radio-pill);
+  transition: background-color var(--duracion) var(--easing);
+  pointer-events: none;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 24px;
+  width: 24px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(20, 48, 61, 0.35);
+  transition: transform var(--duracion) var(--easing);
+}
+
+.switch input:checked + .slider { background: var(--color-primario); }
+.switch input:checked + .slider::before { transform: translateX(20px); }
+.switch input:focus-visible + .slider { outline: 2.5px solid var(--color-primario); outline-offset: 2px; }
+
+/* ---------- Salidas ---------- */
+.salida { min-height: 2rem; }
+
+.salida-vacia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  color: var(--color-texto-tenue);
+  text-align: center;
+  padding: var(--sp-8) var(--sp-3) var(--sp-6);
+  font-size: 0.95rem;
+}
+.salida-vacia p { margin: 0; }
+.salida-vacia-icono {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border-radius: 50%;
+  background: var(--color-primario-50);
+  color: var(--color-primario);
+  opacity: 0.85;
+}
+
+.tabla-resultados {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.tabla-resultados th,
+.tabla-resultados td {
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid var(--color-borde);
+  text-align: left;
+}
+
+.tabla-resultados th {
+  background: var(--color-primario-50);
+  color: var(--color-primario-oscuro);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  position: sticky;
+  top: 0;
+}
+.tabla-resultados tbody tr:hover { background: var(--color-panel-alterno); }
+.tabla-resultados td.valor { font-weight: 700; white-space: nowrap; color: var(--color-primario-oscuro); text-align: right; }
+
+.tabla-scroll { overflow-x: auto; border-radius: var(--radio-sm); border: 1px solid var(--color-borde); }
+.tabla-scroll .tabla-resultados { border: none; }
+.tabla-scroll .tabla-resultados th:first-child, .tabla-scroll .tabla-resultados td:first-child { padding-left: 0.9rem; }
+
+/* ---------- Comparación de ajustes (Módulo 1 — solo resultados) ----------
+   Dos cajas lado a lado (agujero / eje), replicando el formato del docente:
+   columna del agujero rotulada "SAU", columna del eje rotulada "SEU". */
+.ajuste-resultado { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.ajuste-titulo {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+.comparacion-ajuste {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-3);
+}
+
+.caja-parte {
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+  background: var(--color-panel);
+}
+
+/* .caja-agujero/.caja-eje (Ajustes) y .caja-generica/.caja-acento
+   (resto de los módulos) comparten el mismo par de acentos primario/
+   secundario. La diferencia queda solo en el tinte del encabezado y
+   la etiqueta (sin franja de color arriba: alcanza y es menos "tarjeta
+   genérica"). */
+
+.caja-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--color-borde);
+}
+.caja-agujero .caja-encabezado, .caja-generica .caja-encabezado { background: var(--color-primario-50); }
+.caja-eje .caja-encabezado, .caja-acento .caja-encabezado { background: var(--color-secundario-50); }
+
+.caja-encabezado h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.caja-agujero h3, .caja-generica h3 { color: var(--color-primario-oscuro); }
+.caja-eje h3, .caja-acento h3 { color: var(--color-secundario-oscuro); }
+
+.caja-sistema {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radio-pill);
+  color: #fff;
+}
+.caja-agujero .caja-sistema { background: var(--color-primario); }
+.caja-eje .caja-sistema { background: var(--color-secundario); }
+
+.caja-datos { padding: 0.2rem var(--sp-4) var(--sp-2); }
+
+.dato-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 0.55rem 0;
+  border-bottom: 1px dashed var(--color-borde);
+}
+.dato-fila:last-child { border-bottom: none; }
+
+/* La etiqueta puede achicarse y partirse en 2 líneas en pantallas
+   angostas (min-width:0 lo habilita dentro de un flex item); el valor
+   nunca se achica ni se parte, para no cortar un número a la mitad. */
+.dato-etiqueta { flex: 1 1 auto; min-width: 0; font-size: 0.86rem; font-weight: 600; color: var(--color-texto-suave); }
+
+.dato-valor-wrap { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; gap: 0.1rem; }
+.dato-valor { font-size: 0.98rem; font-weight: 700; color: var(--color-texto); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dato-valor-sec { font-size: 0.76rem; font-weight: 600; color: var(--color-texto-tenue); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.dato-destacado .dato-etiqueta { color: var(--color-texto); }
+.dato-destacado .dato-valor { font-size: 1.1rem; }
+.caja-agujero .dato-destacado .dato-valor, .caja-generica .dato-destacado .dato-valor { color: var(--color-primario-oscuro); }
+.caja-eje .dato-destacado .dato-valor, .caja-acento .dato-destacado .dato-valor { color: var(--color-secundario-oscuro); }
+
+/* Resumen: tipo de ajuste + Jmáx/Jmín (o Amáx/Amín), con color según el tipo */
+.resumen-ajuste {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--radio);
+  border: 1.5px solid var(--color-borde);
+}
+
+.resumen-tipo { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+.resumen-valores { display: flex; gap: var(--sp-4); }
+.resumen-item { display: flex; flex-direction: column; align-items: flex-end; }
+.resumen-etiqueta { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.75; }
+.resumen-valor { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.resumen-valor-mm { font-size: 0.78rem; font-weight: 600; opacity: 0.75; font-variant-numeric: tabular-nums; }
+
+.resumen-juego { background: var(--color-exito-fondo); border-color: var(--color-exito-borde); color: var(--color-exito); }
+.resumen-aprieto { background: var(--color-error-fondo); border-color: var(--color-error-borde); color: var(--color-error); }
+.resumen-indeterminado { background: var(--color-aviso-fondo); border-color: var(--color-aviso-borde); color: var(--color-aviso-texto); }
+/* Resultado destacado "neutro": no es un veredicto tipo juego/aprieto,
+   es simplemente LA respuesta (cantidad de correas, vida del rodamiento,
+   incógnita despejada) — va siempre arriba de todo en "solo resultados".
+   Es el único lugar de la app que usa el acento cobre: así el ojo va
+   directo ahí antes que a cualquier otra cosa de la pantalla. */
+.resumen-info { background: var(--color-acento-50); border-color: var(--color-acento-100); color: var(--color-acento-oscuro); }
+.resumen-info .resumen-valor { color: var(--color-acento-oscuro); }
+
+@media (min-width: 520px) {
+  .comparacion-ajuste { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---------- Paso a paso ---------- */
+.paso {
+  margin-bottom: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4);
+  background: var(--color-panel-alterno);
+  border: 1px solid var(--color-borde);
+  border-left: 4px solid var(--color-primario);
+  border-radius: 0 var(--radio) var(--radio) 0;
+}
+
+.paso h3 {
+  margin: 0 0 var(--sp-2);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--color-primario-oscuro);
+  letter-spacing: -0.005em;
+}
+
+.paso .linea-math {
+  padding: 0.3rem 0;
+  overflow-x: auto;
+  font-size: 1.02rem;
+}
+
+.paso .nota {
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: var(--color-texto-suave);
+  margin: 0.5rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--color-borde);
+}
+
+.resultado-final {
+  font-weight: 700;
+  color: var(--color-exito);
+}
+
+/* ---------- Avisos y errores ---------- */
+/* Ícono posicionado en absoluto (no flex/grid): el contenido del aviso
+   puede ser texto + <strong> sueltos (innerHTML de JS), y como hijos
+   directos de un flex container cada nodo se vuelve una columna angosta
+   propia. Con position:relative + padding-left, el texto queda en flujo
+   normal de bloque y ajusta como un párrafo único. */
+.aviso {
+  position: relative;
+  padding: var(--sp-3) var(--sp-4) var(--sp-3) 2.6rem;
+  border-radius: var(--radio-sm);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.aviso-placeholder {
+  background: var(--color-aviso-fondo);
+  border: 1px solid var(--color-aviso-borde);
+  color: var(--color-aviso-texto);
+}
+.aviso-placeholder::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-3);
+  top: 0.9rem;
+  width: 18px;
+  height: 18px;
+  background-color: var(--color-aviso-texto);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M11.25 11.25l.041-.021a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M11.25 11.25l.041-.021a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+.error-msg {
+  position: relative;
+  background: var(--color-error-fondo);
+  border: 1px solid var(--color-error-borde);
+  color: var(--color-error);
+  padding: 0.7rem var(--sp-4) 0.7rem 2.6rem;
+  border-radius: var(--radio-sm);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 0.6rem;
+}
+.error-msg::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-3);
+  top: 0.85rem;
+  width: 18px;
+  height: 18px;
+  background-color: var(--color-error);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+.suma-pct { font-weight: 600; }
+.suma-pct.ok { color: var(--color-exito); }
+.suma-pct.mal { color: var(--color-error); }
+
+/* ---------- Ciclos de rodamientos ---------- */
+.ciclo-fila {
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+  margin-bottom: var(--sp-3);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  position: relative;
+  background: var(--color-panel-alterno);
+}
+
+/* Flex-columna + margin-top:auto en el input: así, si una etiqueta
+   ocupa 1 línea y la de al lado 2 (p. ej. "Tipo de carga" vs.
+   "Ángulo inclinado [°]"), los recuadros de carga igual quedan
+   alineados sobre una misma línea de base, no pegados a etiquetas
+   de distinta altura. */
+.ciclo-fila .campo {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ciclo-fila .campo label { font-size: 0.78rem; color: var(--color-texto-suave); }
+.ciclo-fila .campo input,
+.ciclo-fila .campo select { margin-top: auto; }
+.ciclo-fila .btn-quitar { position: absolute; top: 0.5rem; right: 0.5rem; }
+.ciclo-titulo {
+  grid-column: 1 / -1;
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--color-primario-oscuro);
+  padding-right: 2.2rem;
+}
+
+/* ---------- Esquemas SVG e imágenes de referencia ---------- */
+.esquema { text-align: center; margin: var(--sp-3) 0; }
+.esquema svg { max-width: 100%; height: auto; }
+.grafico-imagen {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-sm);
+  box-shadow: var(--sombra-sm);
+}
+
+/* ---------- Pie ---------- */
+.app-footer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--sp-2) var(--sp-4) var(--sp-6);
+  font-size: 0.8rem;
+  color: var(--color-texto-tenue);
+  text-align: center;
+}
+.app-footer code {
+  background: var(--color-primario-50);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+/* ---------- Tablet / escritorio ---------- */
+@media (min-width: 640px) {
+  .app-header h1 { font-size: 1.3rem; }
+  .fila-doble { grid-template-columns: 1fr 1fr; }
+  .ciclo-fila { grid-template-columns: repeat(3, 1fr); }
+  .btn-principal, .btn-secundario { width: auto; padding-left: 2.2rem; padding-right: 2.2rem; }
+}
+
+@media (min-width: 900px) {
+  main { padding: var(--sp-6) 0; }
+  .modulo {
+    display: grid;
+    grid-template-columns: minmax(340px, 440px) 1fr;
+    align-items: start;
+    gap: var(--sp-5);
+  }
+  .modulo > .aviso { grid-column: 1 / -1; }
+  .panel-salida { position: sticky; top: calc(48px + var(--sp-4)); }
+}
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

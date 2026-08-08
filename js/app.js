@@ -23,11 +23,4 @@
       });
     });
   });
-
-  // Decimales globales: al cambiar, cada módulo re-renderiza al próximo cálculo;
-  // para re-render inmediato basta con volver a presionar «Calcular».
-  const selDecimales = document.getElementById("sel-decimales");
-  selDecimales.addEventListener("change", function () {
-    APP.decimales = parseInt(selDecimales.value, 10);
-  });
 })();

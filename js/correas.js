@@ -164,14 +164,15 @@
 
     const incognita = faltantes.length === 1 ? faltantes[0] : null;
 
-    // 1) Despeje con n₁·d₁ = n₂·d₂
-    if (incognita === "n1") datos.n1 = (datos.n2 * datos.D) / datos.d;
-    if (incognita === "n2") datos.n2 = (datos.n1 * datos.d) / datos.D;
-    if (incognita === "d") datos.d = (datos.n2 * datos.D) / datos.n1;
-    if (incognita === "D") datos.D = (datos.n1 * datos.d) / datos.n2;
+    // 1) Despeje con n₁·d₁ = n₂·d₂ (truncado a 3 decimales, como todos
+    // los pasos intermedios — así resuelve el docente a mano).
+    if (incognita === "n1") datos.n1 = truncar((datos.n2 * datos.D) / datos.d, 3);
+    if (incognita === "n2") datos.n2 = truncar((datos.n1 * datos.d) / datos.D, 3);
+    if (incognita === "d") datos.d = truncar((datos.n2 * datos.D) / datos.n1, 3);
+    if (incognita === "D") datos.D = truncar((datos.n1 * datos.d) / datos.n2, 3);
 
     // 2) Relación de transmisión
-    const i = datos.n2 / datos.n1;
+    const i = truncar(datos.n2 / datos.n1, 3);
     // i < 1: el accionado gira más lento que el motor (transmisión de
     // reducción). i > 1: gira más rápido (transmisión de aumento).
     const tipoTransmision = i < 1 ? "Reducción" : (i > 1 ? "Aumento" : "Directa (1:1)");
@@ -191,14 +192,14 @@
       E = lectE.valor;
       Edada = true;
     } else {
-      E = 5 * datos.d;
+      E = truncar(5 * datos.d, 3);
     }
 
     // 4) y 5) Longitudes de correa
     const sumaD = datos.D + datos.d;
     const restaD = datos.D - datos.d;
-    const Labierto = 2 * E + (Math.PI / 2) * sumaD + (restaD * restaD) / (4 * E);
-    const Lcruzado = 2 * E + (Math.PI / 2) * sumaD + (sumaD * sumaD) / (4 * E);
+    const Labierto = truncar(2 * E + (Math.PI / 2) * sumaD + (restaD * restaD) / (4 * E), 3);
+    const Lcruzado = truncar(2 * E + (Math.PI / 2) * sumaD + (sumaD * sumaD) / (4 * E), 3);
 
     ultimoResultado = {
       datos: datos, incognita: incognita, i: i, tipoTransmision: tipoTransmision, E: E, Edada: Edada,
@@ -230,7 +231,7 @@
 
     // 6) Potencia corregida
     const fcp = grupo[motor][servicio];
-    const Pc = P * fcp;
+    const Pc = truncar(P * fcp, 3);
 
     // 7) Sección
     const seccion = selSeccion.value || null;
@@ -248,18 +249,18 @@
     const poleaMayorD = poleaMenorEsMotor ? datos.D : datos.d;
 
     // 8) Relación K y verificación de distancia entre ejes
-    const K = poleaMayorD / poleaMenorD;
+    const K = truncar(poleaMayorD / poleaMenorD, 3);
     let lMin = null, verificaDistancia = null;
     if (K >= 3) {
       lMin = poleaMayorD;
     } else {
-      lMin = ((K + 1) * poleaMenorD) / 2 + poleaMenorD;
+      lMin = truncar(((K + 1) * poleaMenorD) / 2 + poleaMenorD, 3);
     }
     verificaDistancia = E >= lMin;
 
     // 9) Arco de contacto y Fc (Tabla 5) — el arco es siempre ≤180°,
     // así que se usa (mayor − menor), sin importar cuál es cada polea.
-    const alfa = 180 - (57 * (poleaMayorD - poleaMenorD)) / E;
+    const alfa = truncar(180 - (57 * (poleaMayorD - poleaMenorD)) / E, 3);
     let filaFc = null;
     CORREAS_DATA.fc.forEach(function (fila) {
       if (filaFc === null || Math.abs(fila.grados - alfa) < Math.abs(filaFc.grados - alfa)) filaFc = fila;
@@ -289,7 +290,7 @@
 
     // 10) Velocidad tangencial (da igual con cuál polea se calcule: por
     // definición π·d·n es igual en ambas — se usa la menor por prolijidad)
-    const vt = (Math.PI * poleaMenorD * poleaMenorN) / 60000;
+    const vt = truncar((Math.PI * poleaMenorD * poleaMenorN) / 60000, 3);
 
     // 12) Pb + adicional (Tabla 2) → Pbk. Solo Z, A, B, C transcriptas.
     let tabla2Res = null, pb = null, adicional = null, pbk = null;
@@ -298,15 +299,15 @@
       tabla2Res = buscarTabla2(seccion, datos.n1, datos.d, K);
       pb = tabla2Res.pb;
       adicional = tabla2Res.adicional;
-      if (pb !== null) pbk = pb + (adicional !== null ? adicional : 0);
+      if (pb !== null) pbk = truncar(pb + (adicional !== null ? adicional : 0), 3);
     }
 
     // 13) Potencia efectiva y cantidad
     let pe = null, cantidadExacta = null, cantidad = null;
     if (pbk !== null && fcl !== null && fc !== null) {
-      pe = pbk * fcl * fc;
-      cantidadExacta = Pc / pe;
-      cantidad = Math.ceil(cantidadExacta - 1e-9);
+      pe = truncar(pbk * fcl * fc, 3);
+      cantidadExacta = truncar(Pc / pe, 3);
+      cantidad = Math.ceil(cantidadExacta);
     }
 
     return {

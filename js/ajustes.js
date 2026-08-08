@@ -174,13 +174,21 @@
     const agujero = desviaciones(defAg, fundAg.js ? null : fundAg.valor, itAg);
     const eje = desviaciones(defEje, fundEje.js ? null : fundEje.valor, itEje);
 
-    // 5) Dimensiones máximas y mínimas (mm; desviaciones en µm → /1000)
-    const ag = { dmax: nominal + agujero.ds / 1000, dmin: nominal + agujero.di / 1000 };
-    const ej = { dmax: nominal + eje.ds / 1000, dmin: nominal + eje.di / 1000 };
+    // 5) Dimensiones máximas y mínimas (mm; desviaciones en µm → /1000).
+    // Truncadas a 3 decimales antes de seguir (así resuelve el docente a
+    // mano, en cada paso, no solo en el resultado final).
+    const ag = {
+      dmax: truncar(nominal + agujero.ds / 1000, 3),
+      dmin: truncar(nominal + agujero.di / 1000, 3)
+    };
+    const ej = {
+      dmax: truncar(nominal + eje.ds / 1000, 3),
+      dmin: truncar(nominal + eje.di / 1000, 3)
+    };
 
-    // 6) Juegos (mm)
-    const juegoMax = ag.dmax - ej.dmin;
-    const juegoMin = ag.dmin - ej.dmax;
+    // 6) Juegos (mm), también truncados
+    const juegoMax = truncar(ag.dmax - ej.dmin, 3);
+    const juegoMin = truncar(ag.dmin - ej.dmax, 3);
 
     // 7) Tipo de ajuste
     let tipo;
@@ -358,19 +366,19 @@
 
     function sumando(v) {
       // Envuelve en paréntesis los valores negativos: 45 + (−0,009)
-      return v < 0 ? "(" + fmtLatex(v, 4) + ")" : fmtLatex(v, 4);
+      return v < 0 ? "(" + fmtLatex(v, 3) + ")" : fmtLatex(v, 3);
     }
 
     pasos.push({
       titulo: "Dimensiones máximas y mínimas",
       lineas: [
         {
-          latex: "\\text{Agujero: } D_{max} = " + fmtLatex(r.nominal) + " + " + sumando(r.agujero.ds / 1000) + " = " + fmtLatex(r.dimsAg.dmax, 4) + "\\ \\text{mm};\\quad D_{min} = " + fmtLatex(r.nominal) + " + " + sumando(r.agujero.di / 1000) + " = " + fmtLatex(r.dimsAg.dmin, 4) + "\\ \\text{mm}",
-          texto: "Agujero: Dmáx = " + fmtNum(r.dimsAg.dmax, 4) + " mm ; Dmín = " + fmtNum(r.dimsAg.dmin, 4) + " mm"
+          latex: "\\text{Agujero: } D_{max} = " + fmtLatex(r.nominal) + " + " + sumando(r.agujero.ds / 1000) + " = " + fmtLatex(r.dimsAg.dmax, 3) + "\\ \\text{mm};\\quad D_{min} = " + fmtLatex(r.nominal) + " + " + sumando(r.agujero.di / 1000) + " = " + fmtLatex(r.dimsAg.dmin, 3) + "\\ \\text{mm}",
+          texto: "Agujero: Dmáx = " + fmtNum(r.dimsAg.dmax, 3) + " mm ; Dmín = " + fmtNum(r.dimsAg.dmin, 3) + " mm"
         },
         {
-          latex: "\\text{Eje: } d_{max} = " + fmtLatex(r.nominal) + " + " + sumando(r.eje.ds / 1000) + " = " + fmtLatex(r.dimsEje.dmax, 4) + "\\ \\text{mm};\\quad d_{min} = " + fmtLatex(r.nominal) + " + " + sumando(r.eje.di / 1000) + " = " + fmtLatex(r.dimsEje.dmin, 4) + "\\ \\text{mm}",
-          texto: "Eje: dmáx = " + fmtNum(r.dimsEje.dmax, 4) + " mm ; dmín = " + fmtNum(r.dimsEje.dmin, 4) + " mm"
+          latex: "\\text{Eje: } d_{max} = " + fmtLatex(r.nominal) + " + " + sumando(r.eje.ds / 1000) + " = " + fmtLatex(r.dimsEje.dmax, 3) + "\\ \\text{mm};\\quad d_{min} = " + fmtLatex(r.nominal) + " + " + sumando(r.eje.di / 1000) + " = " + fmtLatex(r.dimsEje.dmin, 3) + "\\ \\text{mm}",
+          texto: "Eje: dmáx = " + fmtNum(r.dimsEje.dmax, 3) + " mm ; dmín = " + fmtNum(r.dimsEje.dmin, 3) + " mm"
         }
       ],
       nota: "Dmáx = nominal + ds ; Dmín = nominal + di (desviaciones pasadas a mm)."
@@ -380,12 +388,12 @@
       titulo: "Juego máximo y mínimo",
       lineas: [
         {
-          latex: "J_{max} = D_{max\\,ag} - d_{min\\,eje} = " + fmtLatex(r.dimsAg.dmax, 4) + " - " + fmtLatex(r.dimsEje.dmin, 4) + " = " + fmtLatex(r.juegoMax, 4) + "\\ \\text{mm} = " + fmtLatex(r.juegoMax * 1000, 1).replace("{,}0", "") + "\\ \\mu\\text{m}",
-          texto: "Jmáx = Dmáx ag − dmín eje = " + fmtNum(r.juegoMax, 4) + " mm = " + fmtUm(r.juegoMax * 1000) + " µm"
+          latex: "J_{max} = D_{max\\,ag} - d_{min\\,eje} = " + fmtLatex(r.dimsAg.dmax, 3) + " - " + fmtLatex(r.dimsEje.dmin, 3) + " = " + fmtLatex(r.juegoMax, 3) + "\\ \\text{mm} = " + fmtLatex(r.juegoMax * 1000, 1).replace("{,}0", "") + "\\ \\mu\\text{m}",
+          texto: "Jmáx = Dmáx ag − dmín eje = " + fmtNum(r.juegoMax, 3) + " mm = " + fmtUm(r.juegoMax * 1000) + " µm"
         },
         {
-          latex: "J_{min} = D_{min\\,ag} - d_{max\\,eje} = " + fmtLatex(r.dimsAg.dmin, 4) + " - " + fmtLatex(r.dimsEje.dmax, 4) + " = " + fmtLatex(r.juegoMin, 4) + "\\ \\text{mm} = " + fmtLatex(r.juegoMin * 1000, 1).replace("{,}0", "") + "\\ \\mu\\text{m}",
-          texto: "Jmín = Dmín ag − dmáx eje = " + fmtNum(r.juegoMin, 4) + " mm = " + fmtUm(r.juegoMin * 1000) + " µm"
+          latex: "J_{min} = D_{min\\,ag} - d_{max\\,eje} = " + fmtLatex(r.dimsAg.dmin, 3) + " - " + fmtLatex(r.dimsEje.dmax, 3) + " = " + fmtLatex(r.juegoMin, 3) + "\\ \\text{mm} = " + fmtLatex(r.juegoMin * 1000, 1).replace("{,}0", "") + "\\ \\mu\\text{m}",
+          texto: "Jmín = Dmín ag − dmáx eje = " + fmtNum(r.juegoMin, 3) + " mm = " + fmtUm(r.juegoMin * 1000) + " µm"
         }
       ]
     });

@@ -3,16 +3,26 @@
    fórmulas (KaTeX con fallback a texto) y helpers de salida.
    ============================================================ */
 
+/* Fijo en 3 decimales, truncado (no redondeado) en toda la app —
+   así resuelve el profesor a mano, sin excepción y sin opción de
+   cambiarlo (pedido explícito del usuario). */
 const APP = {
-  decimales: 2
+  decimales: 3
 };
 
-/** Redondea y formatea un número con coma decimal (español). */
+/** Trunca (no redondea) un valor a la cantidad de decimales dada. */
+function truncar(valor, decimales) {
+  if (!isFinite(valor)) return valor;
+  const f = Math.pow(10, decimales);
+  return Math.trunc(valor * f) / f;
+}
+
+/** Trunca y formatea un número con coma decimal (español). */
 function fmtNum(valor, decimales) {
   const d = (decimales === undefined) ? APP.decimales : decimales;
   if (!isFinite(valor)) return "—";
-  const redondeado = Number(valor.toFixed(d));
-  return redondeado.toLocaleString("es-AR", {
+  const truncado = truncar(valor, d);
+  return truncado.toLocaleString("es-AR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: d,
     useGrouping: false

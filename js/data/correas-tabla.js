@@ -18,7 +18,12 @@
 
      - Tabla 2 (págs. 27-35): prestación base (Pb) + adicional por
        relación de transmisión, por sección/rpm/diámetro de la polea
-       MENOR. Transcritas por completo las secciones Z, A, B y C
+       MOTORA (así la busca el docente, aunque la app la lee de la
+       tabla del catálogo con la etiqueta "polea menor" — el docente
+       siempre usa el motor tal cual, sea o no la menor; verificado
+       con un ejercicio real: motor 1500rpm/300mm → Pb=16,4, no
+       coincide con la polea menor de ese mismo ejercicio). Transcritas
+       por completo las secciones Z, A, B y C
        (`tabla2.Z/A/B/C`); B fue verificada exacta contra el ejemplo
        de cálculo del propio catálogo (pág. 26: Pb=3,09, adicional=0,45
        para B, 1160 rpm, d=137mm, K=1,933). Z, A y C se transcribieron

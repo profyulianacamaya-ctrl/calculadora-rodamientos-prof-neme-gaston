@@ -42,6 +42,7 @@
     D: document.getElementById("co-D"),
     potencia: document.getElementById("co-potencia")
   };
+  const inputE = document.getElementById("co-E");
 
   const selGrupo = document.getElementById("co-grupo");
   const selMotor = document.getElementById("co-motor");
@@ -101,23 +102,25 @@
 
   /** Busca Pb y el adicional por relación de transmisión en la
    * Tabla 2, para las secciones ya transcriptas (Z, A, B, C). Fila =
-   * rpm de la polea menor más próxima; columna de Pb = diámetro de la
-   * polea menor más próximo (ignorando guiones); banda de adicional =
-   * la primera cuyo límite superior es ≥ K. Devuelve null si la
-   * sección todavía no está transcripta. */
-  function buscarTabla2(seccion, poleaMenorN, poleaMenorD, K) {
+   * rpm del MOTOR más próxima (siempre el motor, sea o no la polea
+   * menor — verificado con un ejercicio real del docente: motor
+   * 1500rpm/300mm → Pb=16,4, no coincide con la polea menor); columna
+   * de Pb = diámetro de la polea MOTORA más próximo (ignorando
+   * guiones); banda de adicional = la primera cuyo límite superior es
+   * ≥ K. Devuelve null si la sección todavía no está transcripta. */
+  function buscarTabla2(seccion, rpmMotor, diamMotor, K) {
     const tabla = CORREAS_DATA.tabla2[seccion];
     if (!tabla) return null;
 
     let fila = null;
     tabla.filas.forEach(function (f) {
-      if (fila === null || Math.abs(f.n - poleaMenorN) < Math.abs(fila.n - poleaMenorN)) fila = f;
+      if (fila === null || Math.abs(f.n - rpmMotor) < Math.abs(fila.n - rpmMotor)) fila = f;
     });
 
     let idxDiam = null, mejorDiff = Infinity;
     tabla.diam.forEach(function (dCol, i) {
       if (fila.pb[i] === null) return;
-      const diff = Math.abs(dCol - poleaMenorD);
+      const diff = Math.abs(dCol - diamMotor);
       if (diff < mejorDiff) { mejorDiff = diff; idxDiam = i; }
     });
     const pb = idxDiam !== null ? fila.pb[idxDiam] : null;
@@ -169,9 +172,27 @@
 
     // 2) Relación de transmisión
     const i = datos.n2 / datos.n1;
+    // i < 1: el accionado gira más lento que el motor (transmisión de
+    // reducción). i > 1: gira más rápido (transmisión de aumento).
+    const tipoTransmision = i < 1 ? "Reducción" : (i > 1 ? "Aumento" : "Directa (1:1)");
 
-    // 3) Distancia entre ejes
-    const E = 5 * datos.d;
+    // 3) Distancia entre ejes: si se cargó E a mano se usa tal cual (caso
+    // típico de un ejercicio que ya la da); si no, se adopta E = 5·d_motor.
+    const lectE = leerNumero(inputE);
+    marcarInvalido(inputE, false);
+    let E, Edada = false;
+    if (!lectE.vacio) {
+      if (lectE.invalido || lectE.valor <= 0) {
+        renderError(salida, "La distancia entre ejes (E) debe ser un número positivo.");
+        marcarInvalido(inputE, true);
+        ultimoResultado = null;
+        return;
+      }
+      E = lectE.valor;
+      Edada = true;
+    } else {
+      E = 5 * datos.d;
+    }
 
     // 4) y 5) Longitudes de correa
     const sumaD = datos.D + datos.d;
@@ -180,7 +201,7 @@
     const Lcruzado = 2 * E + (Math.PI / 2) * sumaD + (sumaD * sumaD) / (4 * E);
 
     ultimoResultado = {
-      datos: datos, incognita: incognita, i: i, E: E,
+      datos: datos, incognita: incognita, i: i, tipoTransmision: tipoTransmision, E: E, Edada: Edada,
       Labierto: Labierto, Lcruzado: Lcruzado, cantidad: null
     };
 
@@ -217,7 +238,10 @@
     // La polea menor no siempre es la del motor (ej.: un motor más lento
     // que gira una bomba más rápida tiene la polea del motor más grande).
     // K, el mínimo de distancia entre ejes y el Gráfico Nº 1 se basan
-    // siempre en la polea MENOR, sea motora o accionada.
+    // siempre en la polea MENOR, sea motora o accionada — pero la Tabla 2
+    // (prestación base) es distinta: esa siempre usa el rpm y diámetro del
+    // MOTOR tal cual, aunque no sea la polea menor (verificado con un
+    // ejercicio real del docente).
     const poleaMenorEsMotor = datos.d <= datos.D;
     const poleaMenorD = poleaMenorEsMotor ? datos.d : datos.D;
     const poleaMenorN = poleaMenorEsMotor ? datos.n1 : datos.n2;
@@ -249,6 +273,11 @@
       if (auto) {
         correaN = auto.n;
         correaNLejos = Math.abs(auto.longitud - Labierto) / Labierto > 0.15;
+        // Se toma la fila con Nº más cercano a correaN, entre las que
+        // tienen valor para esta sección (verificado contra el ejemplo
+        // del propio catálogo: correa B59 → Fcl=0,92 viene de la fila
+        // Nº60, que es la más CERCANA a 59, no la anterior — Nº55
+        // también tiene valor pero está más lejos).
         let mejor = null;
         CORREAS_DATA.fcl.forEach(function (fila) {
           if (fila[seccion] === null || fila[seccion] === undefined) return;
@@ -266,7 +295,7 @@
     let tabla2Res = null, pb = null, adicional = null, pbk = null;
     const tabla2Disponible = seccion ? !!CORREAS_DATA.tabla2[seccion] : false;
     if (seccion && tabla2Disponible) {
-      tabla2Res = buscarTabla2(seccion, poleaMenorN, poleaMenorD, K);
+      tabla2Res = buscarTabla2(seccion, datos.n1, datos.d, K);
       pb = tabla2Res.pb;
       adicional = tabla2Res.adicional;
       if (pb !== null) pbk = pb + (adicional !== null ? adicional : 0);
@@ -282,6 +311,7 @@
 
     return {
       P: P, grupo: grupo, motor: motor, servicio: servicio, fcp: fcp, Pc: Pc,
+      motorN: datos.n1, motorD: datos.d,
       poleaMenorD: poleaMenorD, poleaMenorN: poleaMenorN, poleaMenorEsMotor: poleaMenorEsMotor, poleaMayorD: poleaMayorD,
       seccion: seccion, K: K, lMin: lMin, verificaDistancia: verificaDistancia,
       correaN: correaN, correaNLejos: correaNLejos, filaFcl: filaFcl, fcl: fcl,
@@ -342,7 +372,7 @@
         null, true
       ));
     }
-    cajaTrans.cuerpo.appendChild(filaDato("Relación de transmisión (i)", fmtNum(r.i)));
+    cajaTrans.cuerpo.appendChild(filaDato("Relación de transmisión (i)", fmtNum(r.i), r.tipoTransmision));
     cajaTrans.cuerpo.appendChild(filaDato("Distancia entre ejes (E)", fmtNum(r.E) + " mm", null, true));
     cajaTrans.cuerpo.appendChild(filaDato("Longitud — lazo abierto (L)", fmtNum(r.Labierto) + " mm", null, true));
     cajaTrans.cuerpo.appendChild(filaDato("Longitud — lazo cruzado (L)", fmtNum(r.Lcruzado) + " mm"));
@@ -414,16 +444,20 @@
       lineas: [
         { latex: "i = \\dfrac{n_{accionado}}{n_{motor}} = \\dfrac{d_{motor}}{d_{accionado}}", texto: "i = n_accionado / n_motor = d_motor / d_accionado" },
         { latex: "i = \\dfrac{" + fmtLatex(d.n2) + "}{" + fmtLatex(d.n1) + "} = " + fmtLatex(r.i), texto: "i = " + fmtNum(d.n2) + " / " + fmtNum(d.n1) + " = " + fmtNum(r.i) }
-      ]
+      ],
+      nota: "i " + (r.i < 1 ? "< 1" : (r.i > 1 ? "> 1" : "= 1")) + " → transmisión de " + r.tipoTransmision.toLowerCase() + "."
     });
 
     // Paso 3: distancia entre ejes
     pasos.push({
       titulo: "Distancia entre ejes",
-      lineas: [{
-        latex: "E = 5 \\cdot d_{motor} = 5 \\cdot " + fmtLatex(d.d) + " = " + fmtLatex(r.E) + "\\ \\text{mm}",
-        texto: "E = 5 · d_motor = " + fmtNum(r.E) + " mm"
-      }]
+      lineas: r.Edada
+        ? [{ latex: "E = " + fmtLatex(r.E) + "\\ \\text{mm}\\ \\text{(dato del ejercicio)}", texto: "E = " + fmtNum(r.E) + " mm (dato del ejercicio)" }]
+        : [{
+            latex: "E = 5 \\cdot d_{motor} = 5 \\cdot " + fmtLatex(d.d) + " = " + fmtLatex(r.E) + "\\ \\text{mm}",
+            texto: "E = 5 · d_motor = " + fmtNum(r.E) + " mm"
+          }],
+      nota: r.Edada ? null : "No se cargó E: se adopta E = 5 × d (polea motora) como estándar."
     });
 
     // Pasos 4 y 5: longitudes
@@ -519,7 +553,7 @@
       pasos.push({
         titulo: "Correa Nº (Tabla 6) y factor de longitud Fcl (Tabla 4)",
         lineas: lineasN6,
-        nota: "Nº elegido automáticamente: es el de longitud primitiva más próxima a L en la Tabla 6 (rango transcripto: Nº 15 a 180)."
+        nota: "Nº elegido automáticamente: es el de longitud primitiva más próxima a L en la Tabla 6 (rango transcripto: Nº 15 a 180). Para el Fcl se toma la fila más cercana a ese Nº entre las que tienen valor para la sección."
       });
 
       pasos.push({
@@ -555,8 +589,8 @@
               texto: "Pbk = " + fmtNum(c.pb) + " + " + fmtNum(c.adicional !== null ? c.adicional : 0) + " = " + fmtNum(c.pbk) + " HP"
             }
           ],
-          nota: "Tabla 2, sección " + c.seccion + ": fila rpm " + fmtNum(c.tabla2Res.filaN, 0) + " (más próxima a " + fmtNum(c.poleaMenorN, 0) +
-            "), columna d = " + fmtNum(c.tabla2Res.diamUsado, 0) + " mm (más próxima a " + fmtNum(c.poleaMenorD, 0) + ") → Pb; banda de K = " + fmtNum(c.K) + " → adicional."
+          nota: "Tabla 2, sección " + c.seccion + ": fila rpm " + fmtNum(c.tabla2Res.filaN, 0) + " (más próxima al motor, " + fmtNum(c.motorN, 0) +
+            " rpm), columna d = " + fmtNum(c.tabla2Res.diamUsado, 0) + " mm (más próxima al motor, " + fmtNum(c.motorD, 0) + " mm) → Pb; banda de K = " + fmtNum(c.K) + " → adicional."
         });
       } else if (c.seccion && !c.tabla2Disponible) {
         pasos.push({

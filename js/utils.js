@@ -77,9 +77,17 @@ function renderPasos(contenedor, pasos) {
   indice.appendChild(lista);
   contenedor.appendChild(indice);
 
+  // Envoltorio con la traza punteada (línea vertical tipo circuito) que
+  // conecta las medallas — las medallas quedan afuera de la tarjeta,
+  // superpuestas al trazo, en vez de metidas adentro del título.
+  const traza = document.createElement("div");
+  traza.className = "traza";
+  contenedor.appendChild(traza);
+
   const botones = [];
   pasos.forEach(function (paso, idx) {
     const id = prefijoId + idx;
+    const esUltimo = idx === pasos.length - 1;
 
     const boton = document.createElement("button");
     boton.type = "button";
@@ -92,19 +100,23 @@ function renderPasos(contenedor, pasos) {
     lista.appendChild(boton);
     botones.push(boton);
 
-    const div = document.createElement("div");
-    div.className = "paso";
-    div.id = id;
+    const item = document.createElement("div");
+    item.className = "paso-item" + (esUltimo ? " final" : "");
     // Entrada escalonada (tope en 320ms para no demorar cadenas largas).
-    div.style.setProperty("--demora-entrada", Math.min(idx * 40, 320) + "ms");
+    item.style.setProperty("--demora-entrada", Math.min(idx * 40, 320) + "ms");
 
-    const h3 = document.createElement("h3");
     const medalla = document.createElement("span");
     medalla.className = "paso-medalla";
     medalla.textContent = String(idx + 1);
     medalla.setAttribute("aria-hidden", "true");
-    h3.appendChild(medalla);
-    h3.appendChild(document.createTextNode(paso.titulo));
+    item.appendChild(medalla);
+
+    const div = document.createElement("div");
+    div.className = "paso";
+    div.id = id;
+
+    const h3 = document.createElement("h3");
+    h3.textContent = paso.titulo;
     div.appendChild(h3);
 
     (paso.lineas || []).forEach(function (l) {
@@ -124,7 +136,8 @@ function renderPasos(contenedor, pasos) {
       div.appendChild(p);
     }
 
-    contenedor.appendChild(div);
+    item.appendChild(div);
+    traza.appendChild(item);
   });
 
   // Resalta en el índice el paso que está visible mientras se hace scroll.

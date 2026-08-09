@@ -9,20 +9,24 @@
    ============================================================ */
 
 :root {
-  /* Paleta — acero pavonado como color de marca */
+  /* Paleta — acero pavonado como color de marca. Versión "instrumento
+     técnico": misma familia de materiales que antes (acero/latón/cobre)
+     pero más saturada y con un tono de brillo de cobre para acentos
+     puntuales (pestaña activa, punto de veredicto, medalla final del
+     paso a paso) — ver la propuesta visual que aprobó el usuario. */
   --color-fondo: #eef1ee;
   --color-panel: #fbfbf8;
   --color-panel-alterno: #f2f3ef;
 
-  --color-primario-50: #e7edee;
-  --color-primario-100: #d0dcdf;
-  --color-primario: #21495c;
-  --color-primario-oscuro: #14303d;
+  --color-primario-50: #e5edf0;
+  --color-primario-100: #cbdce2;
+  --color-primario: #1d5068;
+  --color-primario-oscuro: #0c2430;
   --color-primario-contraste: #ffffff;
 
-  --color-texto: #1b201d;
-  --color-texto-suave: #565f5a;
-  --color-texto-tenue: #838d87;
+  --color-texto: #16211d;
+  --color-texto-suave: #52605a;
+  --color-texto-tenue: #7c887f;
   --color-borde: #d7dbd6;
   --color-borde-fuerte: #b7bfb8;
 
@@ -37,16 +41,20 @@
   --color-aviso-texto: #6b4e04;
 
   /* Secundario — latón: distingue la caja del "eje" de la del "agujero" */
-  --color-secundario: #8a6a28;
+  --color-secundario: #a97a2e;
   --color-secundario-50: #f4eee0;
-  --color-secundario-oscuro: #5f4818;
+  --color-secundario-oscuro: #6b4d17;
 
-  /* Acento — cobre: reservado al resultado destacado ("resumen-info"),
-     no se usa en ningún otro lugar para que mantenga su peso visual. */
-  --color-acento: #b5651d;
+  /* Acento — cobre: reservado a puntos de énfasis puntuales (resultado
+     destacado, pestaña activa, medalla final del paso a paso) — no se
+     usa como color de fondo grande para que mantenga su peso visual.
+     "-brillo" es una variante más clara para resplandores (glow) en
+     animaciones, nunca para texto/fondo por su bajo contraste. */
+  --color-acento: #c9631a;
   --color-acento-50: #fbeee1;
   --color-acento-100: #f3d9bd;
   --color-acento-oscuro: #7a4110;
+  --color-acento-brillo: #ff8a3d;
 
   /* Tipografía — Plex Sans (UI/títulos) + Plex Mono (valores numéricos) */
   --fuente-ui: "IBM Plex Sans", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -79,10 +87,16 @@
 
 html { -webkit-text-size-adjust: 100%; }
 
+/* Grilla de papel de plano técnico, muy sutil — da textura sin competir
+   con la lectura de los números. */
 body {
   margin: 0;
   font-family: var(--fuente-ui);
-  background: var(--color-fondo);
+  background-color: var(--color-fondo);
+  background-image:
+    linear-gradient(rgba(29, 80, 104, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 80, 104, 0.045) 1px, transparent 1px);
+  background-size: 22px 22px;
   color: var(--color-texto);
   font-size: 16px;
   line-height: 1.5;
@@ -118,9 +132,14 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
   outline-offset: 1px;
 }
 
-/* ---------- Encabezado ---------- */
+/* ---------- Encabezado ----------
+   Degradé radial + grilla técnica sutil (papel de plano) en vez de un
+   color plano — la app "vive" en un panel de instrumento, no en una
+   barra de navegación genérica. */
 .app-header {
-  background: var(--color-primario-oscuro);
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(120% 160% at 15% 0%, #16465c 0%, var(--color-primario-oscuro) 65%);
   color: #fff;
   padding: var(--sp-4) var(--sp-5);
   display: flex;
@@ -129,8 +148,20 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
   justify-content: space-between;
   gap: var(--sp-3);
 }
+.app-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+  pointer-events: none;
+}
 
 .marca {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -141,39 +172,47 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--radio-sm);
-  background: rgba(255, 255, 255, 0.14);
+  background: linear-gradient(155deg, var(--color-acento) 0%, var(--color-secundario-oscuro) 100%);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation: girar-suave 10s linear infinite;
 }
-
-.marca-icono svg { width: 24px; height: 24px; }
+.marca-icono svg { width: 24px; height: 24px; animation: contra-girar 10s linear infinite; }
+@keyframes girar-suave { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes contra-girar { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
 
 .marca-texto { min-width: 0; }
 
 .app-header h1 {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
   line-height: 1.25;
 }
 
 .marca-subtitulo {
-  margin: 0.15rem 0 0;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.72);
-  letter-spacing: 0.02em;
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-acento-brillo);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .marca-autor {
+  position: relative;
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   margin: 0;
   padding: 0.35rem 0.8rem;
   font-size: 0.78rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--radio-pill);
@@ -192,6 +231,7 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 }
 
 .tab-btn {
+  position: relative;
   flex: 1;
   display: flex;
   align-items: center;
@@ -204,7 +244,6 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
   font-size: 0.86rem;
   font-weight: 600;
   color: var(--color-texto-suave);
-  border-bottom: 3px solid transparent;
   cursor: pointer;
   touch-action: manipulation;
   min-height: 48px;
@@ -218,8 +257,21 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 
 .tab-btn.active {
   color: var(--color-primario);
-  border-bottom-color: var(--color-primario);
   background: var(--color-primario-50);
+}
+/* Brillo de cobre centrado, en vez de un borde liso de lado a lado —
+   es la única pestaña que lo lleva, así el ojo la encuentra rápido. */
+.tab-btn.active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 34px;
+  height: 3px;
+  background: var(--color-acento-brillo);
+  border-radius: 3px 3px 0 0;
+  transform: translateX(-50%);
+  box-shadow: 0 0 8px var(--color-acento-brillo);
 }
 
 /* ---------- Estructura ---------- */
@@ -557,13 +609,14 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
   border-radius: var(--radio);
   overflow: hidden;
   background: var(--color-panel);
+  transition: transform var(--duracion) var(--easing), box-shadow var(--duracion) var(--easing);
 }
+.caja-parte:hover { transform: translateY(-2px); box-shadow: var(--sombra); }
 
 /* .caja-agujero/.caja-eje (Ajustes) y .caja-generica/.caja-acento
    (resto de los módulos) comparten el mismo par de acentos primario/
-   secundario. La diferencia queda solo en el tinte del encabezado y
-   la etiqueta (sin franja de color arriba: alcanza y es menos "tarjeta
-   genérica"). */
+   secundario. Encabezado en degradé con texto blanco (en vez de un
+   tinte plano) — misma lógica que las cajas del prototipo aprobado. */
 
 .caja-encabezado {
   display: flex;
@@ -571,19 +624,22 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
   justify-content: space-between;
   gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-4);
-  border-bottom: 1px solid var(--color-borde);
+  color: #fff;
 }
-.caja-agujero .caja-encabezado, .caja-generica .caja-encabezado { background: var(--color-primario-50); }
-.caja-eje .caja-encabezado, .caja-acento .caja-encabezado { background: var(--color-secundario-50); }
+.caja-agujero .caja-encabezado, .caja-generica .caja-encabezado {
+  background: linear-gradient(100deg, var(--color-primario), var(--color-primario-oscuro));
+}
+.caja-eje .caja-encabezado, .caja-acento .caja-encabezado {
+  background: linear-gradient(100deg, var(--color-secundario), var(--color-secundario-oscuro));
+}
 
 .caja-encabezado h3 {
   margin: 0;
   font-size: 0.98rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+  color: #fff;
 }
-.caja-agujero h3, .caja-generica h3 { color: var(--color-primario-oscuro); }
-.caja-eje h3, .caja-acento h3 { color: var(--color-secundario-oscuro); }
 
 .caja-sistema {
   flex: 0 0 auto;
@@ -594,9 +650,8 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
   padding: 0.2rem 0.5rem;
   border-radius: var(--radio-pill);
   color: #fff;
+  background: rgba(255, 255, 255, 0.22);
 }
-.caja-agujero .caja-sistema { background: var(--color-primario); }
-.caja-eje .caja-sistema { background: var(--color-secundario); }
 
 .caja-datos { padding: 0.3rem var(--sp-4) var(--sp-3); }
 
@@ -624,8 +679,12 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
 .caja-agujero .dato-destacado .dato-valor, .caja-generica .dato-destacado .dato-valor { color: var(--color-primario-oscuro); }
 .caja-eje .dato-destacado .dato-valor, .caja-acento .dato-destacado .dato-valor { color: var(--color-secundario-oscuro); }
 
-/* Resumen: tipo de ajuste + Jmáx/Jmín (o Amáx/Amín), con color según el tipo */
+/* Resumen: tipo de ajuste + Jmáx/Jmín (o Amáx/Amín), con color según el
+   tipo. Esquinas tipo instrumento/HUD (::before/::after) y un punto que
+   late al lado del veredicto — la respuesta se lee como una lectura de
+   calibre digital, no como una fila de texto más. */
 .resumen-ajuste {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -635,13 +694,44 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
   border-radius: var(--radio);
   border: 1.5px solid var(--color-borde);
 }
+.resumen-ajuste::before, .resumen-ajuste::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid currentColor;
+  opacity: 0.45;
+}
+.resumen-ajuste::before { top: 7px; left: 7px; border-right: none; border-bottom: none; border-radius: 4px 0 0 0; }
+.resumen-ajuste::after { bottom: 7px; right: 7px; border-left: none; border-top: none; border-radius: 0 0 4px 0; }
 
-.resumen-tipo { font-size: 1.08rem; font-weight: 700; letter-spacing: -0.01em; }
+.resumen-tipo {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.resumen-tipo::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 18%, transparent);
+  animation: latido 2.2s ease-in-out infinite;
+}
+@keyframes latido {
+  0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 18%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in srgb, currentColor 5%, transparent); }
+}
 
 .resumen-valores { display: flex; gap: var(--sp-5); }
 .resumen-item { display: flex; flex-direction: column; align-items: flex-end; gap: 0.1rem; }
 .resumen-etiqueta { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.75; }
-.resumen-valor { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.resumen-valor { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .resumen-valor-mm { font-size: 0.78rem; font-weight: 600; opacity: 0.75; font-variant-numeric: tabular-nums; }
 
 .resumen-juego { background: var(--color-exito-fondo); border-color: var(--color-exito-borde); color: var(--color-exito); }
@@ -699,46 +789,73 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
 }
 .pasos-indice-item:hover { border-color: var(--color-primario); color: var(--color-primario); }
 .pasos-indice-item.activo {
-  background: var(--color-primario);
-  border-color: var(--color-primario);
+  background: var(--color-acento);
+  border-color: var(--color-acento);
   color: #fff;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-acento) 18%, transparent);
 }
 
-/* ---------- Paso a paso ---------- */
-.paso {
+/* ---------- Paso a paso ----------
+   Traza punteada tipo circuito impreso conectando medallas numeradas,
+   que quedan afuera de la tarjeta (superpuestas al trazo) en vez de
+   metidas en el título — así se lee como una secuencia, no como una
+   lista de tarjetas sueltas. El último paso (la respuesta) se marca en
+   cobre para que se note que ahí termina la cadena. */
+.traza {
+  position: relative;
+  padding-left: 2.5rem;
+}
+.traza::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: repeating-linear-gradient(to bottom, var(--color-acento) 0 6px, transparent 6px 11px);
+}
+
+.paso-item {
+  position: relative;
   margin-bottom: var(--sp-3);
-  padding: var(--sp-4) var(--sp-4);
-  background: var(--color-panel-alterno);
-  border: 1px solid var(--color-borde);
-  border-left: 4px solid var(--color-primario);
-  border-radius: 0 var(--radio) var(--radio) 0;
   animation: entrada var(--duracion) var(--easing) backwards;
   animation-delay: var(--demora-entrada, 0ms);
 }
 
+.paso-medalla {
+  position: absolute;
+  left: -2.5rem;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-primario-oscuro);
+  color: #fff;
+  font-family: var(--fuente-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(12, 36, 48, 0.35);
+}
+.paso-item.final .paso-medalla {
+  background: var(--color-acento);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-acento) 16%, transparent);
+}
+
+.paso {
+  padding: var(--sp-4) var(--sp-4);
+  background: var(--color-panel-alterno);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
 .paso h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
   margin: 0 0 var(--sp-3);
   font-size: 0.86rem;
   font-weight: 700;
   color: var(--color-primario-oscuro);
   letter-spacing: -0.005em;
-}
-
-.paso-medalla {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--color-primario);
-  color: #fff;
-  font-family: var(--fuente-mono);
-  font-size: 0.72rem;
-  font-weight: 700;
 }
 
 .paso .linea-math {

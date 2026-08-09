@@ -167,6 +167,19 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
   letter-spacing: 0.02em;
 }
 
+.marca-autor {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radio-pill);
+  white-space: nowrap;
+}
+
 /* ---------- Pestañas ---------- */
 .tabs {
   display: flex;
@@ -451,6 +464,23 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
 /* ---------- Salidas ---------- */
 .salida { min-height: 2rem; }
 
+/* Entrada suave de resultados: da la sensación de "algo pasó" al
+   calcular, en vez de que el contenido aparezca de golpe. Se dispara
+   sola cada vez porque estos nodos se crean de nuevo en cada cálculo
+   (innerHTML="" + appendChild). */
+@keyframes entrada {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ajuste-resultado > *,
+.resumen-ajuste,
+.caja-parte,
+.tabla-scroll,
+.error-msg,
+.aviso {
+  animation: entrada var(--duracion) var(--easing) backwards;
+}
+
 .salida-vacia {
   display: flex;
   flex-direction: column;
@@ -505,7 +535,7 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
 /* ---------- Comparación de ajustes (Módulo 1 — solo resultados) ----------
    Dos cajas lado a lado (agujero / eje), replicando el formato del docente:
    columna del agujero rotulada "SAU", columna del eje rotulada "SEU". */
-.ajuste-resultado { display: flex; flex-direction: column; gap: var(--sp-4); }
+.ajuste-resultado { display: flex; flex-direction: column; gap: var(--sp-5); }
 
 .ajuste-titulo {
   margin: 0;
@@ -568,14 +598,14 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
 .caja-agujero .caja-sistema { background: var(--color-primario); }
 .caja-eje .caja-sistema { background: var(--color-secundario); }
 
-.caja-datos { padding: 0.2rem var(--sp-4) var(--sp-2); }
+.caja-datos { padding: 0.3rem var(--sp-4) var(--sp-3); }
 
 .dato-fila {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--sp-3);
-  padding: 0.55rem 0;
+  padding: 0.75rem 0;
   border-bottom: 1px dashed var(--color-borde);
 }
 .dato-fila:last-child { border-bottom: none; }
@@ -583,11 +613,11 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
 /* La etiqueta puede achicarse y partirse en 2 líneas en pantallas
    angostas (min-width:0 lo habilita dentro de un flex item); el valor
    nunca se achica ni se parte, para no cortar un número a la mitad. */
-.dato-etiqueta { flex: 1 1 auto; min-width: 0; font-size: 0.86rem; font-weight: 600; color: var(--color-texto-suave); }
+.dato-etiqueta { flex: 1 1 auto; min-width: 0; font-size: 0.88rem; font-weight: 600; color: var(--color-texto-suave); line-height: 1.35; }
 
-.dato-valor-wrap { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; gap: 0.1rem; }
-.dato-valor { font-size: 0.98rem; font-weight: 700; color: var(--color-texto); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.dato-valor-sec { font-size: 0.76rem; font-weight: 600; color: var(--color-texto-tenue); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dato-valor-wrap { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
+.dato-valor { font-size: 1.05rem; font-weight: 700; color: var(--color-texto); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dato-valor-sec { font-size: 0.78rem; font-weight: 600; color: var(--color-texto-tenue); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .dato-destacado .dato-etiqueta { color: var(--color-texto); }
 .dato-destacado .dato-valor { font-size: 1.1rem; }
@@ -600,18 +630,18 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-3);
-  padding: var(--sp-4);
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-4);
   border-radius: var(--radio);
   border: 1.5px solid var(--color-borde);
 }
 
-.resumen-tipo { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+.resumen-tipo { font-size: 1.08rem; font-weight: 700; letter-spacing: -0.01em; }
 
-.resumen-valores { display: flex; gap: var(--sp-4); }
-.resumen-item { display: flex; flex-direction: column; align-items: flex-end; }
+.resumen-valores { display: flex; gap: var(--sp-5); }
+.resumen-item { display: flex; flex-direction: column; align-items: flex-end; gap: 0.1rem; }
 .resumen-etiqueta { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.75; }
-.resumen-valor { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.resumen-valor { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .resumen-valor-mm { font-size: 0.78rem; font-weight: 600; opacity: 0.75; font-variant-numeric: tabular-nums; }
 
 .resumen-juego { background: var(--color-exito-fondo); border-color: var(--color-exito-borde); color: var(--color-exito); }
@@ -629,6 +659,51 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
   .comparacion-ajuste { grid-template-columns: 1fr 1fr; }
 }
 
+/* ---------- Índice de pasos (paso a paso) ----------
+   Fila de medallas numeradas, pegajosa debajo de la barra de pestañas,
+   para saltar directo a un paso en cadenas largas (Correas llega a 14)
+   sin tener que scrollear a mano. */
+.pasos-indice {
+  position: sticky;
+  top: 48px; /* debajo de .tabs, que también es sticky */
+  z-index: 5;
+  margin: 0 calc(var(--sp-5) * -1) var(--sp-4);
+  padding: var(--sp-2) var(--sp-5);
+  background: var(--color-panel);
+  border-bottom: 1px solid var(--color-borde);
+  box-shadow: var(--sombra-sm);
+}
+.pasos-indice-lista {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pasos-indice-lista::-webkit-scrollbar { display: none; }
+
+.pasos-indice-item {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-borde-fuerte);
+  background: var(--color-panel);
+  color: var(--color-texto-suave);
+  font-family: var(--fuente-mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--duracion-rapida) var(--easing), color var(--duracion-rapida) var(--easing), border-color var(--duracion-rapida) var(--easing);
+}
+.pasos-indice-item:hover { border-color: var(--color-primario); color: var(--color-primario); }
+.pasos-indice-item.activo {
+  background: var(--color-primario);
+  border-color: var(--color-primario);
+  color: #fff;
+}
+
 /* ---------- Paso a paso ---------- */
 .paso {
   margin-bottom: var(--sp-3);
@@ -637,14 +712,33 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
   border: 1px solid var(--color-borde);
   border-left: 4px solid var(--color-primario);
   border-radius: 0 var(--radio) var(--radio) 0;
+  animation: entrada var(--duracion) var(--easing) backwards;
+  animation-delay: var(--demora-entrada, 0ms);
 }
 
 .paso h3 {
-  margin: 0 0 var(--sp-2);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 var(--sp-3);
   font-size: 0.86rem;
   font-weight: 700;
   color: var(--color-primario-oscuro);
   letter-spacing: -0.005em;
+}
+
+.paso-medalla {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primario);
+  color: #fff;
+  font-family: var(--fuente-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .paso .linea-math {

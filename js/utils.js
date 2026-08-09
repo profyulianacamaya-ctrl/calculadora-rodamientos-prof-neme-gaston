@@ -57,17 +57,54 @@ function lineaMath(latex, textoPlano) {
 }
 
 /**
- * Renderiza pasos estilo pizarrón.
+ * Renderiza pasos estilo pizarrón, con un índice pegajoso arriba (números
+ * clicables que saltan al paso) para ubicarse rápido en cadenas largas
+ * (Correas llega a 14 pasos). Cada paso lleva una medalla numerada en vez
+ * de solo texto "Paso N", conectada visualmente por la línea del borde.
  * pasos: [{ titulo, lineas: [{latex, texto}], nota }]
  */
 function renderPasos(contenedor, pasos) {
   contenedor.innerHTML = "";
+  if (!pasos.length) return;
+
+  const prefijoId = (contenedor.id || "pasos") + "-paso-";
+
+  const indice = document.createElement("nav");
+  indice.className = "pasos-indice";
+  indice.setAttribute("aria-label", "Ir a un paso");
+  const lista = document.createElement("div");
+  lista.className = "pasos-indice-lista";
+  indice.appendChild(lista);
+  contenedor.appendChild(indice);
+
+  const botones = [];
   pasos.forEach(function (paso, idx) {
+    const id = prefijoId + idx;
+
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "pasos-indice-item";
+    boton.textContent = String(idx + 1);
+    boton.title = paso.titulo;
+    boton.addEventListener("click", function () {
+      document.getElementById(id).scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    lista.appendChild(boton);
+    botones.push(boton);
+
     const div = document.createElement("div");
     div.className = "paso";
+    div.id = id;
+    // Entrada escalonada (tope en 320ms para no demorar cadenas largas).
+    div.style.setProperty("--demora-entrada", Math.min(idx * 40, 320) + "ms");
 
     const h3 = document.createElement("h3");
-    h3.textContent = "Paso " + (idx + 1) + " — " + paso.titulo;
+    const medalla = document.createElement("span");
+    medalla.className = "paso-medalla";
+    medalla.textContent = String(idx + 1);
+    medalla.setAttribute("aria-hidden", "true");
+    h3.appendChild(medalla);
+    h3.appendChild(document.createTextNode(paso.titulo));
     div.appendChild(h3);
 
     (paso.lineas || []).forEach(function (l) {
@@ -89,6 +126,22 @@ function renderPasos(contenedor, pasos) {
 
     contenedor.appendChild(div);
   });
+
+  // Resalta en el índice el paso que está visible mientras se hace scroll.
+  // Franja angosta pegada arriba (debajo de .tabs + .pasos-indice, ambos
+  // sticky): un paso "activo" es el que acaba de pasar por esa franja,
+  // que es justo donde scrollIntoView({block:"start"}) lo deja al hacer
+  // clic en el índice.
+  if ("IntersectionObserver" in window) {
+    const observador = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (entrada) {
+        const idx = pasos.findIndex(function (_, i) { return prefijoId + i === entrada.target.id; });
+        if (idx === -1) return;
+        botones[idx].classList.toggle("activo", entrada.isIntersecting);
+      });
+    }, { rootMargin: "-100px 0px -75% 0px" });
+    contenedor.querySelectorAll(".paso").forEach(function (div) { observador.observe(div); });
+  }
 }
 
 /**

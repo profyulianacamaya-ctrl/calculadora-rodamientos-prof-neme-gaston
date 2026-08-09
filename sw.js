@@ -5,7 +5,7 @@
    complejidad de cachearlas también acá.
    Subí este número cada vez que cambies algo (fuerza a los navegadores
    que ya tenían la app instalada a limpiar la copia vieja). */
-const CACHE = "calc-elementos-maquinas-v2";
+const CACHE = "calc-elementos-maquinas-v3";
 
 const ARCHIVOS = [
   "./",
@@ -45,27 +45,29 @@ self.addEventListener("activate", function (evento) {
   self.clients.claim();
 });
 
-// Stale-while-revalidate para los archivos propios: responde al toque con
-// lo que haya en caché (rápido, funciona offline), pero en paralelo pide
-// la versión de red y la deja guardada para la PRÓXIMA visita — así una
-// actualización se nota sola, sin depender de acordarse de subir el
-// número de versión cada vez. Para todo lo demás (CDN de fuentes/KaTeX)
-// se deja pasar directo a la red sin interceptar, así el fallback ya
-// existente en la app sigue funcionando igual que siempre.
+// Red primero para los archivos propios: si hay internet, siempre se ve
+// la versión más nueva al toque (nada de esperar a la "próxima visita"
+// como con stale-while-revalidate, que generó confusión). Si falla la
+// red (sin conexión), recién ahí se usa lo que haya en caché — así la
+// app sigue funcionando offline, que es para lo que existe el caché.
+// Para todo lo demás (CDN de fuentes/KaTeX) se deja pasar directo a la
+// red sin interceptar, así el fallback ya existente en la app sigue
+// funcionando igual que siempre.
 self.addEventListener("fetch", function (evento) {
   const url = new URL(evento.request.url);
   if (url.origin !== self.location.origin) return;
 
   evento.respondWith(
-    caches.open(CACHE).then(function (cache) {
-      return cache.match(evento.request).then(function (enCache) {
-        const actualizar = fetch(evento.request).then(function (respuesta) {
-          cache.put(evento.request, respuesta.clone());
-          return respuesta;
-        }).catch(function () {
-          if (!enCache && evento.request.mode === "navigate") return cache.match("./index.html");
+    fetch(evento.request).then(function (respuesta) {
+      const copia = respuesta.clone();
+      caches.open(CACHE).then(function (cache) { cache.put(evento.request, copia); });
+      return respuesta;
+    }).catch(function () {
+      return caches.open(CACHE).then(function (cache) {
+        return cache.match(evento.request).then(function (enCache) {
+          if (enCache) return enCache;
+          if (evento.request.mode === "navigate") return cache.match("./index.html");
         });
-        return enCache || actualizar;
       });
     })
   );

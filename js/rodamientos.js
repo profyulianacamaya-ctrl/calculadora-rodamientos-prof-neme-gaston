@@ -70,19 +70,18 @@
     return { modo: "truncar", dec: 3, intermedios: true };
   }
 
-  /** Aplica truncar o redondear con la cantidad de decimales indicada. */
+  /** Trunca a cfg.dec decimales, usando la función compartida (utils.js)
+   * que ya corrige el ruido de punto flotante de restas tipo 67.03-66.971. */
   function ajustar(v, cfg, forzar) {
     if (!isFinite(v)) return v;
     if (!forzar && !cfg.intermedios) return v;
-    const f = Math.pow(10, cfg.dec);
-    return cfg.modo === "truncar" ? Math.trunc(v * f) / f : Math.round(v * f) / f;
+    return truncar(v, cfg.dec);
   }
 
-  /** Formatea aplicando siempre el modo elegido (para mostrar). */
+  /** Formatea truncando siempre a cfg.dec decimales (para mostrar). */
   function fmtR(v, cfg, grouping) {
     if (!isFinite(v)) return "—";
-    const f = Math.pow(10, cfg.dec);
-    const ajustado = cfg.modo === "truncar" ? Math.trunc(v * f) / f : Math.round(v * f) / f;
+    const ajustado = truncar(v, cfg.dec);
     return ajustado.toLocaleString("es-AR", {
       minimumFractionDigits: 0,
       maximumFractionDigits: cfg.dec,

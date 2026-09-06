@@ -10,11 +10,25 @@ const APP = {
   decimales: 3
 };
 
-/** Trunca (no redondea) un valor a la cantidad de decimales dada. */
+/** Trunca (no redondea) un valor a la cantidad de decimales dada.
+ *
+ * OJO con el punto flotante: una resta tan simple como 67.03 - 66.971
+ * no da 0.059 en JS, da 0.0589999999999975 (el binario no puede
+ * representar exacto ni 67.03 ni 66.971). Si truncáramos ese valor
+ * directo, "0.0589999999999975" se corta en "0.058" — un decimal
+ * menos de lo que da la cuenta a mano. Por eso primero redondeamos a
+ * mucha más precisión de la que la app usa (decimales+6, muy por
+ * encima de los 3-4 decimales que se cargan a mano) para limpiar ese
+ * ruido de representación, y RECIÉN AHÍ truncamos a los decimales
+ * pedidos. Esto no afecta un truncado "de verdad" (ej. 1,2349 → 1,234
+ * sigue dando 1,234): el ruido de punto flotante nunca llega a la
+ * magnitud de decimales+6, así que nunca se confunde con un valor
+ * real que el usuario quiso truncar. */
 function truncar(valor, decimales) {
   if (!isFinite(valor)) return valor;
+  const corregido = Number(valor.toFixed(decimales + 6));
   const f = Math.pow(10, decimales);
-  return Math.trunc(valor * f) / f;
+  return Math.trunc(corregido * f) / f;
 }
 
 /** Trunca y formatea un número con coma decimal (español). */

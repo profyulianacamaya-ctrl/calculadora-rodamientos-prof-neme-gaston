@@ -980,6 +980,51 @@ input.invalido:focus { box-shadow: 0 0 0 3px var(--color-error-borde); }
   border: 1px solid var(--color-borde);
   border-radius: var(--radio-sm);
   box-shadow: var(--sombra-sm);
+  cursor: zoom-in;
+  transition: box-shadow var(--duracion-rapida) var(--easing);
+}
+.grafico-imagen:hover, .grafico-imagen:focus-visible { box-shadow: var(--sombra); }
+
+/* ---------- Lightbox: imagen de referencia a pantalla completa ---------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-5);
+  background: rgba(15, 24, 21, 0.85);
+  cursor: zoom-out;
+}
+.lightbox[hidden] { display: none; }
+.lightbox-img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--radio-sm);
+  box-shadow: var(--sombra-lg);
+  cursor: default;
+}
+.lightbox-cerrar {
+  position: absolute;
+  top: var(--sp-4);
+  right: var(--sp-4);
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color var(--duracion-rapida) var(--easing);
+}
+.lightbox-cerrar:hover, .lightbox-cerrar:focus-visible { background: rgba(255, 255, 255, 0.24); }
+
+@media (prefers-reduced-motion: reduce) {
+  .grafico-imagen, .lightbox-cerrar { transition: none; }
 }
 
 /* ---------- Pie ---------- */

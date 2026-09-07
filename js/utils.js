@@ -338,3 +338,61 @@ function resumenHero(titulo, clase, valores) {
   }
   return resumen;
 }
+
+/* ============================================================
+   Zoom a pantalla completa para imágenes de referencia (.grafico-
+   imagen) — hoy solo el Gráfico Nº 1 de Correas, pero por delegación
+   de eventos en <body> cubre cualquier imagen con esa clase que se
+   agregue después en cualquier módulo, sin cablear nada por módulo.
+   ============================================================ */
+(function () {
+  let disparador = null; // elemento que abrió el lightbox, para devolverle el foco al cerrar
+
+  const overlay = document.createElement("div");
+  overlay.className = "lightbox";
+  overlay.hidden = true;
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "Imagen a pantalla completa");
+
+  const img = document.createElement("img");
+  img.className = "lightbox-img";
+  overlay.appendChild(img);
+
+  const btnCerrar = document.createElement("button");
+  btnCerrar.type = "button";
+  btnCerrar.className = "lightbox-cerrar";
+  btnCerrar.setAttribute("aria-label", "Cerrar imagen");
+  btnCerrar.innerHTML = "✕";
+  overlay.appendChild(btnCerrar);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    document.body.appendChild(overlay);
+  });
+
+  function abrir(origen) {
+    disparador = origen;
+    img.src = origen.currentSrc || origen.src;
+    img.alt = origen.alt || "";
+    overlay.hidden = false;
+    btnCerrar.focus();
+  }
+
+  function cerrar() {
+    overlay.hidden = true;
+    img.src = "";
+    if (disparador) { disparador.focus(); disparador = null; }
+  }
+
+  document.addEventListener("click", function (ev) {
+    const imagen = ev.target.closest(".grafico-imagen");
+    if (imagen) { abrir(imagen); return; }
+    if (!overlay.hidden && (ev.target === overlay || ev.target === btnCerrar)) cerrar();
+  });
+
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && !overlay.hidden) { cerrar(); return; }
+    const imagen = ev.target.closest && ev.target.closest(".grafico-imagen");
+    if (imagen && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); abrir(imagen); }
+  });
+})();

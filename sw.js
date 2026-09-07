@@ -5,7 +5,7 @@
    complejidad de cachearlas también acá.
    Subí este número cada vez que cambies algo (fuerza a los navegadores
    que ya tenían la app instalada a limpiar la copia vieja). */
-const CACHE = "calc-elementos-maquinas-v3";
+const CACHE = "calc-elementos-maquinas-v4";
 
 const ARCHIVOS = [
   "./",
@@ -21,7 +21,6 @@ const ARCHIVOS = [
   "./js/data/correas-tabla.js",
   "./js/data/rodamientos-tabla.js",
   "./img/grafico-seccion-correa.png",
-  "./img/grafico-seccion-dunlop.png",
   "./img/icons/icon-192.png",
   "./img/icons/icon-512.png"
 ];

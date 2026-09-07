@@ -392,6 +392,11 @@ function resumenHero(titulo, clase, valores) {
 
   document.addEventListener("keydown", function (ev) {
     if (ev.key === "Escape" && !overlay.hidden) { cerrar(); return; }
+    // Atrapa el foco adentro del lightbox mientras está abierto: el único
+    // elemento enfocable ahí adentro es el botón cerrar, así que Tab o
+    // Shift+Tab simplemente lo mantienen enfocado (si no, el foco se
+    // escapa a botones tapados detrás del overlay).
+    if (ev.key === "Tab" && !overlay.hidden) { ev.preventDefault(); btnCerrar.focus(); return; }
     const imagen = ev.target.closest && ev.target.closest(".grafico-imagen");
     if (imagen && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); abrir(imagen); }
   });

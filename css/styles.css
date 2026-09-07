@@ -233,6 +233,7 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 .tab-btn {
   position: relative;
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -250,7 +251,12 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
   transition: color var(--duracion-rapida) var(--easing), background-color var(--duracion-rapida) var(--easing);
 }
 
-.tab-btn span { white-space: nowrap; }
+/* Sin min-width:0 acá, un flex item no se achica por debajo del ancho
+   de su texto sin partir — con 3 pestañas y "Ajustes y Tolerancias"
+   como la más larga, eso hacía desbordar la barra unos 10px en un
+   celular de 375px. Con min-width:0 + sin nowrap, la etiqueta más
+   larga puede partirse en 2 líneas en vez de forzar el desborde. */
+.tab-btn span { text-align: center; line-height: 1.15; }
 .tab-icono { flex: 0 0 auto; width: 19px; height: 19px; }
 
 .tab-btn:hover { background: var(--color-primario-50); color: var(--color-primario-oscuro); }

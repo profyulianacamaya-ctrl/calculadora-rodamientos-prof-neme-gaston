@@ -35,10 +35,11 @@ js/data/            ★ Tablas del docente (editar aquí, sin tocar la lógica)
 - **Módulo 1 (COMPLETO)**: tablas ISO transcritas de `Tablas_Tolerancia_y_Ajuste.pdf`
   (calidades IT01–IT16, agujeros A…ZC, ejes a…zc, hasta Ø500 mm).
 - **Módulo 2 (COMPLETO)**: método Dunlop para cantidad y tipo de correa.
-  Transcritas: Tabla 3 (Fcp), Tabla 4 (Fcl), Tabla 5 (Fc), dimensiones de secciones
-  y diámetros mínimos (Tabla 1). El Gráfico Nº 1 (sección) se muestra como imagen.
-  La Tabla 2 (Pb + adicional) y la Tabla 6 (Nº de correa) NO están transcritas:
-  el usuario ingresa esos 3 valores y la app guía exactamente dónde mirarlos.
+  Transcritas: Tabla 1 (diámetros mínimos), Tabla 2 (Pb + adicional, las 6
+  secciones Z/A/B/C/D/E), Tabla 3 (Fcp), Tabla 4 (Fcl), Tabla 5 (Fc) y Tabla 6
+  (Nº de correa). El Gráfico Nº 1 (sección) se muestra como imagen, con zoom a
+  pantalla completa al tocarla. Todo se calcula solo — no queda ningún valor
+  de tabla pendiente de cargar a mano.
 - **Módulo 3 (COMPLETO)**: método del parcial Nº2 del docente. Transcritas de
   `TABLAS ROD.pdf`: tabla de 39 rodamientos (d int/ext, D bola, Z, D·cosα/dm),
   tabla fc, tabla X-Y (con interpolación lineal), V₁ por anillo rotante y

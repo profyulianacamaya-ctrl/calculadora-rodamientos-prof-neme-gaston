@@ -17,9 +17,8 @@
     11) Vt = π·d·N/60000  (máx. 30 m/s)
     12) Pbk = Pb + adicional. Pb y el adicional se buscan solos en la
         Tabla 2 (fila = rpm de la polea menor, columna = diámetro de
-        la polea menor, banda = K) para las secciones Z, A, B y C.
-        Las secciones D y E todavía no están transcriptas (son mucho
-        más grandes) — para esas dos la app pide Pb y adicional a mano.
+        la polea menor, banda = K) para las 6 secciones (Z, A, B, C,
+        D, E) — ninguna queda pendiente.
     13) Pe = Pbk · Fcl · Fc ; Cantidad = Pc/Pe → entero superior
    No se pide "Nº de correa", "polea tensora", "prestación base" ni
    "adicional por relación": la app los deriva sola. Si se quiere
@@ -101,7 +100,8 @@
   }
 
   /** Busca Pb y el adicional por relación de transmisión en la
-   * Tabla 2, para las secciones ya transcriptas (Z, A, B, C). Fila =
+   * Tabla 2, para cualquier sección transcripta (las 6: Z, A, B, C, D,
+   * E). Fila =
    * rpm del MOTOR más próxima (siempre el motor, sea o no la polea
    * menor — verificado con un ejercicio real del docente: motor
    * 1500rpm/300mm → Pb=16,4, no coincide con la polea menor); columna
@@ -292,7 +292,7 @@
     // definición π·d·n es igual en ambas — se usa la menor por prolijidad)
     const vt = truncar((Math.PI * poleaMenorD * poleaMenorN) / 60000, 3);
 
-    // 12) Pb + adicional (Tabla 2) → Pbk. Solo Z, A, B, C transcriptas.
+    // 12) Pb + adicional (Tabla 2) → Pbk. Las 6 secciones transcriptas.
     let tabla2Res = null, pb = null, adicional = null, pbk = null;
     const tabla2Disponible = seccion ? !!CORREAS_DATA.tabla2[seccion] : false;
     if (seccion && tabla2Disponible) {
@@ -597,7 +597,7 @@
         pasos.push({
           titulo: "Prestación base corregida (Tabla 2)",
           lineas: [{ latex: "\\text{Sección " + c.seccion + ": Tabla 2 no transcripta todavía}", texto: "Sección " + c.seccion + ": Tabla 2 no transcripta todavía" }],
-          nota: "Las secciones D y E de la Tabla 2 aún no están cargadas en la app; por ahora hay que buscar Pb y el adicional en el catálogo a mano."
+          nota: "Esta sección todavía no tiene la Tabla 2 cargada en la app; hay que buscar Pb y el adicional en el catálogo a mano."
         });
       }
 
@@ -643,7 +643,7 @@
       const divT2 = document.createElement("div");
       divT2.className = "aviso aviso-placeholder";
       divT2.innerHTML = "La sección <strong>" + c.seccion + "</strong> todavía no tiene la Tabla 2 (prestación base) cargada en la app " +
-        "— por ahora la <strong>cantidad de correas</strong> queda pendiente para esta sección. Funciona automático para Z, A, B y C.";
+        "— por ahora la <strong>cantidad de correas</strong> queda pendiente para esta sección.";
       salida.appendChild(divT2);
     } else if (c.correaNLejos) {
       const divLejos = document.createElement("div");
